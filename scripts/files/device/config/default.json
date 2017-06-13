@@ -1,0 +1,16 @@
+{
+  "server": {
+    "module": "http",
+    "optionsSupplied": false,
+    "port": 2000
+  },
+  "logs": {
+    "level": "trace",
+    "threshold": "500k",
+    "totalFiles": 10
+  },
+  "charts": {
+    "threshold": "500k",
+    "totalFiles": 2
+  }
+}

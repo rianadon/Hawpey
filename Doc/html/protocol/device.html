@@ -1,0 +1,568 @@
+<!DOCTYPE html><html><head>
+          <title>Hawpey Docs | Protocol/device</title>
+          <link href="/doc/materialize.css" type="text/css" rel="stylesheet" />
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head><body>
+          <header><ul class="side-nav fixed"><li class="icon"><a href="/doc"><img src="/doc/icon.svg" /></a></li><li class="file"><a href="/doc/programs">Programs</a></li><li class="folder"><a>Protocol</a><ul><li class="file selected"><a href="/doc/protocol/device">Device</a></li><li class="file"><a href="/doc/protocol/format">Format</a></li><li class="file"><a href="/doc/protocol/master">Master</a></li><li class="file"><a href="/doc/protocol/">README</a></li></ul></li><li class="file"><a href="/doc/">README</a></li></ul></header>
+          <main><div class="container">
+        <p>Each device has two modes of operation: a websocket for monitoring and a RESTful API for controlling and modifying.</p>
+<h2>
+            <a name="properties" class="anchor" href="#properties">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Properties
+          </h2><p>Each device has the following properties:</p>
+<ul>
+<li>Variables<ul>
+<li>These can be modified by the user to change the operation of the device.
+These should not be changed often but rather be considered as settings (e.g. whether to use inches or centimeters).</li>
+</ul>
+</li>
+<li>Controls<ul>
+<li>Each device can have a number of controls that can trigger actions within the device.
+For example, a control could be used to turn a light on and off.</li>
+</ul>
+</li>
+<li><p>Outputs</p>
+<ul>
+<li><p>Outputs display the information a device collects from the outside world.</p>
+<p>The current state of a control is also considered an output (except in the <code>hawpey-util</code> library). The name of the control and its matching output must be identical.</p>
+</li>
+</ul>
+</li>
+<li>Program<ul>
+<li>Each device runs a modifiable program spawned by the server that populates outputs and handles the state changes of controls.</li>
+</ul>
+</li>
+<li>Format<ul>
+<li>The format is a JSON file specifying how a device&#39;s outputs should be visually displayed.</li>
+</ul>
+</li>
+<li>Logs<ul>
+<li>Logs are populated by the program and can be used for debugging. The server also logs HTTP requests.</li>
+</ul>
+</li>
+<li>Timers<ul>
+<li>Timers are just <code>setInterval</code> functions created by the program. These can be manually triggerd via the RESTful API.</li>
+</ul>
+</li>
+<li>Charts<ul>
+<li>Programs can populate charts to show trends in outputs over time.</li>
+</ul>
+</li>
+</ul>
+<p>Every property except the program, the logs, and the charts has both a name and a value.</p>
+<h2>
+            <a name="the-websocket" class="anchor" href="#the-websocket">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>The Websocket
+          </h2><p>Every device has a websocket at the path <code>/ws</code> on port <code>2000</code>. Through the websocket, JSON &quot;packets&quot; are sent by the master (to request certain information) and by the device (to relay information when requested or changed).</p>
+<p>When an unexpected error occurs in the program of the device, it should send an error to the master, which then handles it.
+Errors are automatically sent when an exception in thrown in the program, but ideally it should be caught in the program so that it can send more helpful information.</p>
+<p>Listed below is the structure for requests and updates.</p>
+<h4>
+            <a name="requests-master-device-" class="anchor" href="#requests-master-device-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Requests (master → device)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;request&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;filter&quot;</span><span class="o">:</span> <span class="s2">&quot;.*&quot;</span> <span class="c1">// Optional</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>filter</code> is a regex string that can be used to limit the controls sent back.
+Any control whose name matches the regex is relayed back.
+As it is optional, it defaults to <code>.*</code>.</p>
+<h4>
+            <a name="updates-device-master-" class="anchor" href="#updates-device-master-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Updates (device → master)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;update&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;outputs&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="p">[</span><span class="nx">name</span><span class="p">]</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">// An example</span>
+            <span class="s2">&quot;units&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span> <span class="c1">// Optional</span>
+        <span class="p">]</span>
+        <span class="c1">// ...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>name</code> specifies the name of the output. It is used by the webpage to later identify it</p>
+<p><code>value</code> can be of the data types <code>number</code>, <code>boolean</code>, or <code>string</code>. Use common sense for the type you will give it. Here are some guidelines:</p>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4, 16 in, 12%</td>
+<td>number</td>
+</tr>
+<tr>
+<td>On, off</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>Loading, abnormal</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<p><code>units</code> is an optional string that is appended to <code>value</code>. If there should be a space between the units and the value, then <code>units</code> should begin with a space.
+The styling is up to you to decide.</p>
+<h4>
+            <a name="errors-device-master-" class="anchor" href="#errors-device-master-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Errors (device → master)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="c1">// An example</span>
+    <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="s2">&quot;There has been an error&quot;</span><span class="p">,</span> <span class="c1">// Another example</span>
+    <span class="s2">&quot;reason&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="c1">// Optional</span>
+    <span class="s2">&quot;resolution&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span> <span class="c1">// Optional</span>
+<span class="p">}</span>
+</code></pre>
+<p><code>title</code> specifies a brief description of the error that has occurred. It should be no more than 70-75 characters.</p>
+<p><code>description</code> is a longer description of the error. It can be as long as desired.</p>
+<p><code>reason</code> is an optional string that gives the user a reason why the error occurred.</p>
+<p><code>resolution</code> is another optional string that gives the user an idea of how to fix the error so it is not thrown again.</p>
+<h4>
+            <a name="logs-device-master-" class="anchor" href="#logs-device-master-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Logs (device → master)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;record&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;hawpey&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hostname&quot;</span><span class="o">:</span> <span class="s2">&quot;something&quot;</span><span class="p">,</span> <span class="c1">// An example</span>
+        <span class="s2">&quot;pid&quot;</span><span class="o">:</span> <span class="mi">50346</span><span class="p">,</span> <span class="c1">// Another example</span>
+        <span class="s2">&quot;level&quot;</span><span class="o">:</span> <span class="mi">30</span><span class="p">,</span> <span class="c1">// Example</span>
+        <span class="s2">&quot;v&quot;</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="o">:</span> <span class="s2">&quot;2012-06-19T21:34:19.906Z&quot;</span> <span class="c1">// Example</span>
+        <span class="s2">&quot;area&quot;</span><span class="o">:</span> <span class="s2">&quot;program&quot;</span> <span class="c1">// Another example</span>
+        <span class="s2">&quot;msg&quot;</span><span class="o">:</span> <span class="s2">&quot;hello world&quot;</span> <span class="c1">// Example</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>As Hawpey internally uses Bunayan for logging, the value of <code>record</code> is whatever it outputs.</p>
+<p>The only special field generated by hapwey is <code>area</code>, which represents whether the message came from the server (<code>server</code>), the program (<code>program</code>), or the main server program (<code>main</code>).</p>
+<h4>
+            <a name="charts-device-master-" class="anchor" href="#charts-device-master-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Charts (device → master)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;plot&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;record&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;hawpey&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hostname&quot;</span><span class="o">:</span> <span class="s2">&quot;something&quot;</span><span class="p">,</span> <span class="c1">// An example</span>
+        <span class="s2">&quot;pid&quot;</span><span class="o">:</span> <span class="mi">50346</span><span class="p">,</span> <span class="c1">// Another example</span>
+        <span class="s2">&quot;level&quot;</span><span class="o">:</span> <span class="mi">30</span>
+        <span class="s2">&quot;v&quot;</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="o">:</span> <span class="s2">&quot;2012-06-19T21:34:19.906Z&quot;</span> <span class="c1">// Example</span>
+        <span class="s2">&quot;area&quot;</span><span class="o">:</span> <span class="s2">&quot;charts&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;output&quot;</span><span class="o">:</span> <span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="c1">// Example</span>
+        <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="mi">10</span> <span class="c1">// Another example</span>
+        <span class="s2">&quot;msg&quot;</span><span class="o">:</span> <span class="s2">&quot;&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>For consistency with logging, Bunyan is used for generating charts. The only relevant fields are <code>output</code> and <code>value</code>, which describe the data point.</p>
+<h4>
+            <a name="bad-requests-device-master-" class="anchor" href="#bad-requests-device-master-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Bad Requests (device → master)
+          </h4><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;bad&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;code&quot;</span><span class="o">:</span> <span class="mi">400</span><span class="p">,</span> <span class="c1">// An example</span>
+    <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="s2">&quot;There has been an error&quot;</span><span class="p">,</span> <span class="c1">// Another example</span>
+<span class="p">}</span>
+</code></pre>
+<p>When there is an error processing a request sent by the master, the device should send a Bad Request message.</p>
+<p><code>code</code> represents the equivalent HTTP status code of the error.</p>
+<p><code>description</code> is a short description of why the request could not be processed.</p>
+<h2>
+            <a name="the-restful-api" class="anchor" href="#the-restful-api">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>The RESTful API
+          </h2><p>The API is simply mounted at path <code>/</code> on port <code>2000</code>.</p>
+<p>Unless specified, POST requests are sent with a content-type of <code>application/json</code>.</p>
+<p>Note: the comments in the response will not be returned in the response and are rather for documentation purposes. Similarly, comments in the form body are for documentation and should not be sent.</p>
+<h3>
+            <a name="the-root" class="anchor" href="#the-root">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>The root
+          </h3><p>HTTP: Request: <code>GET /</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>Returns the contents of this document in HTML. If you are writing your own implementation of a Hawpey server this is completely optional. It&#39;s just so <code>/</code> points <em>somewhere</em>.</p>
+<h3>
+            <a name="variables" class="anchor" href="#variables">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Variables
+          </h3><h4>
+            <a name="get-all-variables" class="anchor" href="#get-all-variables">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all variables
+          </h4><p>HTTP Request: <code>GET /variables</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;example&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// The name of the variable</span>
+        <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="c1">// The current value of the variable</span>
+        <span class="s2">&quot;validator&quot;</span><span class="o">:</span> <span class="s2">&quot;.*&quot;</span> <span class="c1">// regex string specifying how to validate the variable</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;example2&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// Again, the name</span>
+        <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="c1">// Values are always strings</span>
+        <span class="s2">&quot;validator&quot;</span><span class="o">:</span> <span class="s2">&quot;\\d+&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="get-a-specific-variable" class="anchor" href="#get-a-specific-variable">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get a specific variable
+          </h4><p>HTTP Request: <code>GET /variables/&lt;name&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="s2">&quot;val&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;validator&quot;</span><span class="o">:</span> <span class="s2">&quot;.*&quot;</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="modify-a-variable" class="anchor" href="#modify-a-variable">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Modify a variable
+          </h4><p>HTTP Request: <code>PUT /variables/&lt;name&gt;</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="s2">&quot;val&quot;</span>
+<span class="p">}</span>
+</code></pre>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>A status code of 204 is returned. If the variable does not pass <code>validator</code>, a 400 error code is returned.</p>
+<h3>
+            <a name="controls" class="anchor" href="#controls">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Controls
+          </h3><h4>
+            <a name="get-all-controls" class="anchor" href="#get-all-controls">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all controls
+          </h4><p>HTTP Request: <code>GET /controls</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;example&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// The name of the control</span>
+        <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span> <span class="c1">// For on-off switch</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;example2&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// Again, the name</span>
+        <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="c1">// For slider</span>
+        <span class="s2">&quot;min&quot;</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span> <span class="c1">// Minimum value of slider</span>
+        <span class="s2">&quot;max&quot;</span><span class="o">:</span> <span class="mi">100</span> <span class="c1">// Maximum value of slider</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="get-a-specific-control" class="anchor" href="#get-a-specific-control">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get a specific control
+          </h4><p>HTTP Request: <code>GET /controls/&lt;name&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;boolean&quot;</span> <span class="c1">// See above</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="modify-a-control" class="anchor" href="#modify-a-control">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Modify a control
+          </h4><p>HTTP Request: <code>PUT /controls/&lt;name&gt;</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="kc">true</span> <span class="c1">// Either number or boolean depending on control&#39;s type</span>
+<span class="p">}</span>
+</code></pre>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="kc">true</span> <span class="c1">// The new value of the control&#39;s output.</span>
+<span class="p">}</span>
+</code></pre>
+<p>It should <em>not</em> be assumed that the new value will be the same as the value that was sent.</p>
+<p>The new value is also sent out through the Websocket. It is only additionally sent through the HTTP response for clients only using the RESTful API.</p>
+<h3>
+            <a name="outputs" class="anchor" href="#outputs">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Outputs
+          </h3><h4>
+            <a name="get-all-outputs" class="anchor" href="#get-all-outputs">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all outputs
+          </h4><p>HTTP Request: <code>GET /outputs</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>See the websocket documentation.</p>
+<h4>
+            <a name="get-a-specific-output" class="anchor" href="#get-a-specific-output">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get a specific output
+          </h4><p>HTTP Request: <code>GET /outputs/&lt;name&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>See the websocket documentation.</p>
+<h3>
+            <a name="program" class="anchor" href="#program">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Program
+          </h3><h4>
+            <a name="get-the-program" class="anchor" href="#get-the-program">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get the program
+          </h4><p>HTTP Request: <code>GET /program</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>The program, with mime type <code>text/plain</code></p>
+<h4>
+            <a name="modify-the-program" class="anchor" href="#modify-the-program">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Modify the program
+          </h4><p>HTTP Request: <code>PUT /program</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><p>Should be sent with mime type <code>text/plain</code>, with the program sent as the form body.</p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>None</p>
+<h3>
+            <a name="dependencies" class="anchor" href="#dependencies">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Dependencies
+          </h3><h4>
+            <a name="get-all-npm-packages-not-mentioned-in-code-package-json-code-" class="anchor" href="#get-all-npm-packages-not-mentioned-in-code-package-json-code-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all npm packages not mentioned in <code>package.json</code>
+          </h4><p>HTTP Request: <code>GET /dependencies</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;library&quot;</span><span class="o">:</span> <span class="s2">&quot;1.0.4&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;another library&quot;</span><span class="o">:</span> <span class="s2">&quot;0.8.1&quot;</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="install-a-package" class="anchor" href="#install-a-package">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Install a package
+          </h4><p>HTTP Request: <code>POST /dependencies</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>Just a <code>201</code> status code</p>
+<h3>
+            <a name="format" class="anchor" href="#format">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Format
+          </h3><h4>
+            <a name="get-the-current-contents-of-code-format-json-code-formatting-" class="anchor" href="#get-the-current-contents-of-code-format-json-code-formatting-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get the current contents of <code>format.json</code> (formatting)
+          </h4><p>HTTP Request: <code>GET /format</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>The contents of <code>format.json</code></p>
+<h4>
+            <a name="overwrite-code-format-json-code-formatting-with-new-data" class="anchor" href="#overwrite-code-format-json-code-formatting-with-new-data">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Overwrite <code>format.json</code> (formatting) with new data
+          </h4><p>HTTP Request: <code>PUT /format</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><p>Should be sent with mime type <code>text/plain</code>, with the program sent as the form body.</p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>None</p>
+<h3>
+            <a name="log" class="anchor" href="#log">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Log
+          </h3><h4>
+            <a name="get-all-recent-log-messages" class="anchor" href="#get-all-recent-log-messages">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all recent log messages
+          </h4><p>HTTP Request: <code>GET /log</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>The contents of <code>log/device.log</code></p>
+<h3>
+            <a name="charts" class="anchor" href="#charts">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Charts
+          </h3><h4>
+            <a name="get-all-plotted-outputs" class="anchor" href="#get-all-plotted-outputs">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all plotted outputs
+          </h4><p>HTTP Request: <code>GET /charted</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>An array of every output that appears in <code>log/charts.log</code></p>
+<h4>
+            <a name="get-all-plotted-points" class="anchor" href="#get-all-plotted-points">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all plotted points
+          </h4><p>HTTP Request: <code>GET /charts</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>The contents of <code>log/charts.log</code></p>
+<h4>
+            <a name="get-all-plotted-points-for-an-output" class="anchor" href="#get-all-plotted-points-for-an-output">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all plotted points for an output
+          </h4><p>HTTP Request: <code>GET /charts/&lt;output&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>The contents of <code>log/charts.log</code> where the output matches the one specified in the URL</p>
+<h3>
+            <a name="timers" class="anchor" href="#timers">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Timers
+          </h3><h3>
+            <a name="get-all-timers-and-their-interval-times" class="anchor" href="#get-all-timers-and-their-interval-times">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all timers and their interval times
+          </h3><p>HTTP Request: <code>GET /timers</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;timer&quot;</span><span class="o">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="c1">// A timer named timer 1 that is executed every 1000 ms</span>
+    <span class="s2">&quot;timer 2&quot;</span><span class="o">:</span> <span class="mi">5000</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="trigger-a-timer" class="anchor" href="#trigger-a-timer">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Trigger a timer
+          </h4><p>HTTP Request: <code>GET /timers/&lt;name&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>Just a <code>204</code> status code</p>
+<h2>
+            <a name="multiple-devices-on-one-ip-address" class="anchor" href="#multiple-devices-on-one-ip-address">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Multiple devices on one IP address
+          </h2><p>If there are multiple peripherals attached to one physical device that, for ease of use, should be labeled as multiple devices, the first device&#39;s webserver should be located at port <code>2001</code> and the rest should be at ports increasing from <code>2001</code> (e.i. <code>2002</code>, <code>2003</code>, <code>2004</code>... ). The device at port.</p>
+<p>At port <code>2000</code>, there should be a webserver that when a <code>GET</code> http request is sent to <code>/ports</code>, should return an array of the ports in JSON format such as the following:</p>
+<pre><code class="lang-javascript"><span class="p">[</span><span class="mi">2001</span><span class="p">,</span> <span class="mi">2002</span><span class="p">,</span> <span class="mi">2003</span><span class="p">]</span>
+</code></pre>
+<h3>
+            <a name="triggers" class="anchor" href="#triggers">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Triggers
+          </h3><h4>
+            <a name="get-all-triggers-for-the-device" class="anchor" href="#get-all-triggers-for-the-device">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get all triggers for the device
+          </h4><p>HTTP Request: <code>GET /triggers</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="s2">&quot;8228139e-c512-45eb-9afd-8b4e48c955c2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;conditions&quot;</span><span class="o">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;logic&quot;</span><span class="p">,</span> <span class="c1">// Triggers when output&#39;s value matches something</span>
+                <span class="s2">&quot;output&quot;</span><span class="o">:</span> <span class="s2">&quot;\&quot;hostname:2000\&quot;.output&quot;</span><span class="p">,</span> <span class="c1">// Name of output with address and . before</span>
+                <span class="s2">&quot;condition&quot;</span><span class="o">:</span> <span class="s2">&quot;== 10&quot;</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;logic&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;output&quot;</span><span class="o">:</span> <span class="s2">&quot;\&quot;hostname:2000\&quot;.output&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;condition&quot;</span><span class="o">:</span> <span class="s2">&quot;&lt; 10&quot;</span> <span class="c1">// Can also be less than or greater than or equal to, etc.</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;change&quot;</span><span class="p">,</span> <span class="c1">// When an output&#39;s value changes</span>
+                <span class="s2">&quot;output&quot;</span><span class="o">:</span> <span class="s2">&quot;\&quot;hostname:2000\&quot;.output&quot;</span>
+            <span class="p">}</span> <span class="cm">/*, TODO</span>
+<span class="cm">            {</span>
+<span class="cm">                &quot;type&quot;: &quot;expression&quot;, // Triggers if an expression is truthy</span>
+<span class="cm">                &quot;names&quot;: [&quot;output&quot;], // Names of outputs involved in this expressoin</span>
+<span class="cm">                &quot;expression&quot;: &quot;output(&#39;hostname:2000&#39;, &#39;output&#39;) == 10&quot; // Outputs referenced by output(address, name)</span>
+<span class="cm">            },</span>
+<span class="cm">                &quot;type&quot;: &quot;expression&quot;, // Triggers if an expression is truthy</span>
+<span class="cm">                &quot;names&quot;: [&quot;output&quot;], // Names of outputs involved in this expressoin</span>
+<span class="cm">                &quot;expression&quot;: &quot;output(&#39;hostname:2000&#39;, &#39;output&#39;) &gt; prev(&#39;hostname:2000&#39;, &#39;output&#39;)&quot; // Can also reference previous value of output</span>
+<span class="cm">            } */</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;results&quot;</span><span class="o">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;control&quot;</span><span class="o">:</span> <span class="s2">&quot;\&quot;hostname:2000\&quot;.a control&quot;</span><span class="p">,</span> <span class="c1">// Name of control</span>
+                <span class="s2">&quot;value&quot;</span><span class="o">:</span> <span class="kc">true</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="s2">&quot;expression&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expression&quot;</span><span class="o">:</span> <span class="s2">&quot;control(&#39;hostname:2000&#39;, &#39;control&#39;, output(&#39; hostname:2000&#39;, &#39;output&#39;))&quot;</span> <span class="c1">// Controls set by control(address, name, value)</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre>
+<p>As Hawpey is still in development, currently only one logic trigger condition and only trigger results of type <code>control</code> are currently supported.</p>
+</div></main></body></html>

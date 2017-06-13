@@ -1,0 +1,105 @@
+<!DOCTYPE html><html><head>
+          <title>Hawpey Docs | Protocol/master</title>
+          <link href="/doc/materialize.css" type="text/css" rel="stylesheet" />
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head><body>
+          <header><ul class="side-nav fixed"><li class="icon"><a href="/doc"><img src="/doc/icon.svg" /></a></li><li class="file"><a href="/doc/programs">Programs</a></li><li class="folder"><a>Protocol</a><ul><li class="file"><a href="/doc/protocol/device">Device</a></li><li class="file"><a href="/doc/protocol/format">Format</a></li><li class="file selected"><a href="/doc/protocol/master">Master</a></li><li class="file"><a href="/doc/protocol/">README</a></li></ul></li><li class="file"><a href="/doc/">README</a></li></ul></header>
+          <main><div class="container">
+        <p>The master&#39;s API doesn&#39;t do much as it&#39;s only functions are:</p>
+<pre><code><span class="o">*</span> <span class="nx">Proxying</span> <span class="nx">all</span> <span class="nx">devices</span>
+<span class="o">*</span> <span class="nx">Managing</span> <span class="nx">Errors</span>
+<span class="o">*</span> <span class="nx">Serving</span> <span class="nx">the</span> <span class="nx">webpages</span>
+</code></pre><h2>
+            <a name="proxying" class="anchor" href="#proxying">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Proxying
+          </h2><p>All of the properties of the devices are relayed through the master.
+Therefore, when a device is added or removed, the master must be notified so that it can change the appropriate proxies</p>
+<h3>
+            <a name="managing-proxied-devices" class="anchor" href="#managing-proxied-devices">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Managing proxied devices
+          </h3><h4>
+            <a name="list-all-devices" class="anchor" href="#list-all-devices">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>List all devices
+          </h4><p>HTTP Request: <code>GET /devices</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span>
+    <span class="s2">&quot;hostname:2000&quot;</span><span class="o">:</span> <span class="p">{</span> <span class="c1">// The hostname or ip address of the device and the port</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;My First Device&quot;</span> <span class="c1">// The name given to the device</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;aaa.bbb.ccc.ddd:2000&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;2nd device&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="get-a-specific-device" class="anchor" href="#get-a-specific-device">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Get a specific device
+          </h4><p>HTTP Request: <code>GET /devices/&lt;address&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><pre><code class="lang-javascript"><span class="p">{</span> <span class="c1">// The hostname or ip address of the device and the port</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;My First Device&quot;</span> <span class="c1">// The name given to the device</span>
+<span class="p">}</span>
+</code></pre>
+<h4>
+            <a name="change-the-name-of-a-device" class="anchor" href="#change-the-name-of-a-device">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Change the name of a device
+          </h4><p>HTTP Request: <code>PUT /devices/&lt;address&gt;</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><pre><code class="lang-javascript"><span class="p">{</span> <span class="c1">// The hostname or ip address of the device and the port</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;New name&quot;</span> <span class="c1">// The name given to the device</span>
+<span class="p">}</span>
+</code></pre>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>A status code of 204 is returned.</p>
+<h4>
+            <a name="add-a-new-device" class="anchor" href="#add-a-new-device">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Add a new device
+          </h4><p>HTTP Request: <code>POST /devices</code></p>
+<h6>
+            <a name="form-body" class="anchor" href="#form-body">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Form body
+          </h6><pre><code class="lang-javascript"><span class="p">{</span> <span class="c1">// The hostname or ip address of the device and the port</span>
+    <span class="s2">&quot;address&quot;</span><span class="o">:</span> <span class="s2">&quot;hostname:port&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;New name&quot;</span><span class="p">,</span> <span class="c1">// The name given to the device</span>
+<span class="p">}</span>
+</code></pre>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>A status code of 204 is returned.</p>
+<h4>
+            <a name="delete-a-device" class="anchor" href="#delete-a-device">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Delete a device
+          </h4><p>HTTP Request: <code>DELETE /devices/&lt;address&gt;</code></p>
+<h6>
+            <a name="response" class="anchor" href="#response">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Response
+          </h6><p>A status code of 204 is returned.</p>
+<h3>
+            <a name="using-proxied-devices" class="anchor" href="#using-proxied-devices">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Using proxied devices
+          </h3><p>Append whatever path you want to request to <code>/proxy/&lt;address&gt;/</code> where address is the <code>hostname:port</code> of the device (which is url encoded, of course).</p>
+</div></main></body></html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head>
+          <title>Hawpey Docs | Protocol/format</title>
+          <link href="/doc/materialize.css" type="text/css" rel="stylesheet" />
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head><body>
+          <header><ul class="side-nav fixed"><li class="icon"><a href="/doc"><img src="/doc/icon.svg" /></a></li><li class="file"><a href="/doc/programs">Programs</a></li><li class="folder"><a>Protocol</a><ul><li class="file"><a href="/doc/protocol/device">Device</a></li><li class="file selected"><a href="/doc/protocol/format">Format</a></li><li class="file"><a href="/doc/protocol/master">Master</a></li><li class="file"><a href="/doc/protocol/">README</a></li></ul></li><li class="file"><a href="/doc/">README</a></li></ul></header>
+          <main><div class="container">
+        <p>Each device must contain a file named <code>format.json</code>, which describes how its controls and outputs should be displayed.
+For the purposes of brevity, outputs are considered equivalent to controls in this file as they are both formatted in the same way.</p>
+<p>Below is an explanation of what each field does:</p>
+<pre><code class="lang-javascript"><span class="p">{</span>
+  <span class="s2">&quot;ignore&quot;</span><span class="o">:</span> <span class="p">[</span>   <span class="c1">// Don&#39;t display the outputs/controls specified</span>
+    <span class="s2">&quot;something&quot;</span> <span class="c1">// Rules can still be made with these, but their</span>
+  <span class="p">],</span>            <span class="c1">// current status won&#39;t be shown in the webpage</span>
+  <span class="s2">&quot;group&quot;</span><span class="o">:</span> <span class="p">{</span>         <span class="c1">// Adding controls to a group will display all of them</span>
+                     <span class="c1">// in the same card on the webpage</span>
+    <span class="s2">&quot;Name&quot;</span><span class="o">:</span> <span class="p">{</span>        <span class="c1">// The name that will be given to the group</span>
+      <span class="s2">&quot;Name 1&quot;</span><span class="o">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="c1">// Each output is given its new name under the group</span>
+      <span class="s2">&quot;Name 2&quot;</span><span class="o">:</span> <span class="s2">&quot;2&quot;</span>  <span class="c1">// So &quot;name 1&quot; will be replaced with &quot;1&quot; in this case</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;icons&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;output&quot;</span> <span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="c1">// The exact name of the output to assign the icon to</span>
+      <span class="s2">&quot;function&quot;</span><span class="o">:</span> <span class="s2">&quot;&lt;circle cx=&#39;50&#39; cy=&#39;50&#39; r=${value} fill=&#39;#F00&#39; /&gt;&quot;</span>
+      <span class="c1">// As icons are SVGs, this describes what goes inside the svg tag</span>
+      <span class="c1">// The string is treated as a template literal, so JavaScript expressions</span>
+      <span class="c1">// are evaluated inside of ${ }</span>
+      <span class="c1">// the variable value inside of the template literal is either the value</span>
+      <span class="c1">// of the output or an array of the values of the outputs in a group</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;regex&quot;</span> <span class="s2">&quot;Light&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;function&quot;</span><span class="o">:</span> <span class="s2">&quot;&lt;circle cx=&#39;50&#39; cy=&#39;50&#39; r=${value} fill=&#39;#F00&#39; /&gt;&quot;</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre>
+</div></main></body></html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html><html><head>
+          <title>Hawpey Docs</title>
+          <link href="/doc/materialize.css" type="text/css" rel="stylesheet" />
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head><body>
+          <header><ul class="side-nav fixed"><li class="icon"><a href="/doc"><img src="/doc/icon.svg" /></a></li><li class="file"><a href="/doc/programs">Programs</a></li><li class="folder"><a>Protocol</a><ul><li class="file"><a href="/doc/protocol/device">Device</a></li><li class="file"><a href="/doc/protocol/format">Format</a></li><li class="file"><a href="/doc/protocol/master">Master</a></li><li class="file"><a href="/doc/protocol/">README</a></li></ul></li><li class="file selected"><a href="/doc/">README</a></li></ul></header>
+          <main><div class="container">
+        <h5>
+            <a name="welcome-to-hawpey-39-s-documentation-" class="anchor" href="#welcome-to-hawpey-39-s-documentation-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Welcome to Hawpey&#39;s documentation!
+          </h5><p>There are two main points of interest in this folder.</p>
+<ul>
+<li><code>protocol/</code>: Details of how to interact with devices running Hawpey</li>
+<li><code>programs.md</code>: Documentation of the <code>hawpey-util.js</code> library</li>
+</ul>
+<p>However, before reading these, here is a brief overview of how Hawpey works:</p>
+<ol>
+<li><h4>
+            <a name="hawpey-runs-on-two-different-types-of-devices-a-em-master-em-and-em-devices-em-" class="anchor" href="#hawpey-runs-on-two-different-types-of-devices-a-em-master-em-and-em-devices-em-">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Hawpey runs on two different types of devices: a <em>master</em> and <em>devices</em>.
+          </h4><h5>
+            <a name="devices" class="anchor" href="#devices">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Devices
+          </h5><p> Devices relay and control information from the outside world. A device could be connected to a lightbulb, motion sensor, or whatever you want.</p>
+<p> Note that a device for Hawpey&#39;s purposes refers to a webserver running on a computer / microcontroller / anything that can run node.js. So that means that there could be multiple &quot;devices&quot; running on a single computer / whatever.</p>
+<h5>
+            <a name="master" class="anchor" href="#master">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Master
+          </h5><p> The <em>master</em> ties all of the devices together, it hosts the website and proxies all of the webservers of the devices to a single port (that can be exposed to the outside world if you want).</p>
+<p> It also serves the purpose of interacting with services such as your mail server (see more on this later) and handles errors encountered by <em>devices</em>.</p>
+</li>
+<li><h4>
+            <a name="devices-have-outputs-and-controls" class="anchor" href="#devices-have-outputs-and-controls">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Devices have outputs and controls
+          </h4><p> In order to control and relay information about the outside world, each device can define its own outputs and controls.</p>
+<p> An output is basically just a reported variable. An output could be the humidity of the air, the temperature of the room, or whether or not a lightbulb is turned on.</p>
+<p> Controls are kind of like light switches. Controls can be either increased or decreased (like a slider) or turned on or off. Controls also have their own output for their state (note that the <code>hawpey-util.js</code> library keeps these separate.)</p>
+</li>
+<li><h4>
+            <a name="devices-have-triggers" class="anchor" href="#devices-have-triggers">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Devices have triggers
+          </h4><p> Through the RESTful API on a device, devices can be automated so that when certain outputs reach specific values or change controls are changed.</p>
+</li>
+</ol>
+</div></main></body></html>

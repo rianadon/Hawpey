@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="192px" height="192px" viewBox="0 0 192 192" enable-background="new 0 0 192 192" xml:space="preserve">
+<filter  filterUnits="objectBoundingBox" id="AI_Shadow_1">
+	<feGaussianBlur  stdDeviation="4" result="blur" in="SourceAlpha"></feGaussianBlur>
+	<feOffset  dy="4" dx="0" result="offsetBlurredAlpha" in="blur"></feOffset>
+	<feMerge>
+		<feMergeNode  in="offsetBlurredAlpha"></feMergeNode>
+		<feMergeNode  in="SourceGraphic"></feMergeNode>
+	</feMerge>
+</filter>
+<rect x="31.999" y="8.001" fill="#EEEEEE" width="128.001" height="175.999"/>
+<g>
+	<path fill="#4285F4" d="M56,8v76h80V8h24v176h-24v-76H56v76H32V8H56z"/>
+</g>
+<rect x="64" y="16" fill="#DDDDDD" width="16" height="24"/>
+<rect x="64" y="52.001" fill="#DDDDDD" width="16" height="24"/>
+<rect x="112" y="16.001" fill="#DDDDDD" width="16" height="24"/>
+<rect x="88.001" y="16.001" fill="#DDDDDD" width="15.999" height="24"/>
+<rect x="88.001" y="52" fill="#DDDDDD" width="15.999" height="24"/>
+<rect x="112" y="52.001" fill="#FFFF66" width="16" height="24"/>
+<rect x="64" y="116" fill="#FFFF66" width="16" height="24"/>
+<rect x="64" y="152.002" fill="#DDDDDD" width="16" height="24"/>
+<rect x="112" y="116.002" fill="#DDDDDD" width="16" height="24"/>
+<rect x="88.001" y="116.002" fill="#DDDDDD" width="15.999" height="24"/>
+<rect x="83.999" y="156" fill="#DDDDDD" width="23.999" height="28"/>
+<rect x="112" y="152.002" fill="#DDDDDD" width="16" height="24"/>
+<line fill="none" stroke="#CCCCCC" stroke-miterlimit="10" x1="96.001" y1="156" x2="96.001" y2="184"/>
+<circle fill="#CCCCCC" cx="100" cy="172" r="2"/>
+<circle fill="#CCCCCC" cx="92" cy="172" r="2"/>
+<rect x="112" fill="#CCCCCC" width="4" height="8"/>
+<rect x="120" y="4" fill="#CCCCCC" width="4" height="4"/>
+<path fill="none" stroke="#DDDDDD" stroke-width="4" stroke-miterlimit="10" d="M170,4c11.48,6.628,15.412,21.306,8.785,32.784"/>
+<path fill="none" stroke="#DDDDDD" stroke-width="4" stroke-miterlimit="10" d="M164,14.393c5.74,3.313,7.705,10.652,4.393,16.392"
+	/>
+<g opacity="0.2" filter="url(#AI_Shadow_1)">
+	<path fill="#4285F4" d="M56,8v76h80V8h24v176h-24v-76H56v76H32V8H56z"/>
+</g>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="20.0005" y1="20.0015" x2="172.0001" y2="172.0011">
+	<stop  offset="0" style="stop-color:#FFFFFF;stop-opacity:0.1"/>
+	<stop  offset="1" style="stop-color:#FEFEFE;stop-opacity:0"/>
+</linearGradient>
+<rect x="32" y="8.001" fill="url(#SVGID_1_)" width="128" height="176"/>
+</svg>

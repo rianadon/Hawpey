@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../../js/hawpey.js",
+        "sourceMap": true,
+        "target": "es6"
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "server": {
+    "module": "http",
+    "optionsSupplied": false,
+    "port": 400
+  },
+  "proxy": {
+    "secure": false
+  }
+}

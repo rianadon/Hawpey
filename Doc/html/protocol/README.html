@@ -1,0 +1,23 @@
+<!DOCTYPE html><html><head>
+          <title>Hawpey Docs | Protocol</title>
+          <link href="/doc/materialize.css" type="text/css" rel="stylesheet" />
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head><body>
+          <header><ul class="side-nav fixed"><li class="icon"><a href="/doc"><img src="/doc/icon.svg" /></a></li><li class="file"><a href="/doc/programs">Programs</a></li><li class="folder"><a>Protocol</a><ul><li class="file"><a href="/doc/protocol/device">Device</a></li><li class="file"><a href="/doc/protocol/format">Format</a></li><li class="file"><a href="/doc/protocol/master">Master</a></li><li class="file selected"><a href="/doc/protocol/">README</a></li></ul></li><li class="file"><a href="/doc/">README</a></li></ul></header>
+          <main><div class="container">
+        <h2>
+            <a name="overview" class="anchor" href="#overview">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Overview
+          </h2><p>With Hawpey, there are two categories of objects: one master, and many devices.</p>
+<ul>
+<li>Devices collect and control information from the outside world. They can also control other devices when a certain circumstances occur.</li>
+<li>Masters allow oversight of these devices. They collect errors and host the main webserver that displays the status of every device.</li>
+</ul>
+<h4>
+            <a name="implementation" class="anchor" href="#implementation">
+              <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+            </a>Implementation
+          </h4><p>Hawpey assumes you have an internal network that all of these devices can connect to. The master can optionally have its webserver ports forwarded to a WAN.</p>
+<p>See the other files in <code>Doc/protocol</code> for more information.</p>
+</div></main></body></html>
